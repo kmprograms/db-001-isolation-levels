@@ -1,0 +1,93 @@
+-------------------------------------------------------------------------------------------------
+TRANSACTION ISOLATION
+Definiuje zachowanie bazy danych, kiedy dwie lub wiecej transakcji rownolegle dzialaja
+na tej samej bazie danych.
+
+Jest to jeden z elementow ACID czyli zbioru właściwości gwarantujących poprawne przetwarzanie
+transakcji w bazach danych.
+ACID -> Atomicity, Consistency, Isolation, Durability
+-------------------------------------------------------------------------------------------------
+Problemy pojawiające się podczas jednoczesnego wykonywania kilku transakcji.
+
+DIRTY READS
+Mamy transakcje 1 oraz transakcje 2 które wykonują się równolegle.
+Transakcja 1 modyfikuje rekord ale jeszcze nie było commit.
+Transakcja 2 czyta ten rekord, ale transakcja 1 za chwilę robi rollback a potem się końćzy.
+Transakcja 2 ma niewłaściwe dane.
+
+NON-REPEATABLE READS
+Mamy transakcje 1 oraz transakcje 2 które wykonują się równolegle.
+Transakcja 1 czyta kilka rekordów.
+Transakcja 2 modyfikuje te rekordy zanim transakcja 1 się kończy ( przed commit ).
+Transakcja 1 ponownie czyta rekordy ale są one już różne niż przy poprzednim odczycie.
+Czyli ten sam select generuje nam różne zestawy danych.
+
+PHANTOM READS
+Mamy transakcje 1 oraz transakcje 2 które wykonują się równolegle.
+Transakcja 1 czyta kilka rekordów.
+Transakcja 2 dodaje nowe rekordy zanim transakcja 1 się kończy ( przed commit ).
+Transakcja 1 ponownie czyta rekordy i ma ich więcej niż poprzednio. Czyli ten sam select
+daje nam większą ilość rekordów niż poprzednio.
+
+-------------------------------------------------------------------------------------------------
+SERIALIZABLE
+Jeżeli dwie transakcje wykonują się równolegle to tylko wtedy kiedy pierwsza transakcja 
+się zakończy druga transakcja może wykonywać swoje operacje i na odwrót. Czyli mamy tutaj
+totalną izolację. Przechodzimy na sekwencyjne wykonywanie transakcji. Może to wpłynąć na 
+wydajność aplikacji i mogą pojawić się deadlocks.
+
+REPEATABLE_READ
+Kiedy dwie transakcje wykonują się jednocześnie to dopóki pierwsza transakcja nie będzie zakończona
+to druga transakcja nie może modyfikować istniejących rekordów, ale może dodawać nowe rekordy.
+W przypadku MYSQL jest do domyślne ustawienie.
+Teoretycznie jeżeli dodasz w drugiej transakcji nowe rekordy i ją zakończysz ( commit ) to powinny te dodane 
+rekordy być odzwierciedlone w pierwszej transakcji jeszcze przed jej commitem, ale w MYSQL ich nie 
+zobaczymy.
+
+READ_COMMITED
+Kiedy dwie transakcje wykonują się jednocześnie to jeżeli w drugiej transakcji dodajesz lub modyfikujesz
+istniejące rekordy i zakończysz drugą transakcję (commit) to wszystkie te zmiany będą widoczne w pierwszej
+transakcji.
+
+READ_UNCOMMITED
+Najsłabszy poziom izolacji. Pierwsza transakcja widzi wszystkie zmiany z drugiej transakcji nawet jeżeli
+ta jeszcze nie została zakończona (commit).
+
+-------------------------------------------------------------------------------------------------
+
+ISOLATION LEVEL			DIRTY READS				NON-REPEATABLE READS			PHANTOM READS
+
+SERIALIZABLE			NOT POSSIBLE			NOT POSSIBLE					NOT POSSIBLE
+
+REPEATABLE_READ			NOT POSSIBLE			NOT POSSIBLE					POSSIBLE
+		
+READ_COMMITED			NOT POSSIBLE			POSSIBLE						POSSIBLE		
+
+READ_UNCOMMITED			POSSIBLE				POSSIBLE						POSSIBLE
+
+
+
+-------------------------------------------------------------------------------------------------
+set session transaction isolation level read uncommitted;
+set session transaction isolation level read committed;
+set session transaction isolation level repeatable read;
+set session transaction isolation level serializable;
+
+select @@TRANSACTION_ISOLATION;
+
+create database test_db;
+use test_db;
+create table if not exists people (id int primary key auto_increment, name varchar(50));
+
+set autocommit = 0;
+begin;
+select * from people;
+insert into people (name) value ('A');
+update people set name = 'AA' where id = 1;
+commit;
+
+-------------------------------------------------------------------------------------------------
+docker-compose up -d --build
+docker exec -it <id_kontenera> bash
+mysql -uroot -p
+Podaj haslo root
