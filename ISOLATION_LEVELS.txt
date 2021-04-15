@@ -55,7 +55,7 @@ ta jeszcze nie została zakończona (commit).
 
 -------------------------------------------------------------------------------------------------
 
-ISOLATION LEVEL			DIRTY READS				NON-REPEATABLE READS			PHANTOM READS
+ISOLATION LEVEL         DIRTY READS             NON-REPEATABLE READS            PHANTOM READS
 
 SERIALIZABLE            NOT POSSIBLE            NOT POSSIBLE                    NOT POSSIBLE
 
